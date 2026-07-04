@@ -1,0 +1,43 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16
+    container_name: postgres
+    restart: always
+    healthcheck:
+      # Use pg_isready to check if the DB is accepting connections
+      test: ["CMD-SHELL", "pg_isready -U postgres -d imagelite"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: imagelite
+    ports:
+      - "5432:5432"
+    volumes:
+      - ../data:/var/lib/postgresql/data
+    networks:
+      - imagelitenetwork
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "15432:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - imagelitenetwork
+
+networks:
+  imagelitenetwork:
+    driver: bridge
